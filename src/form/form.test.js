@@ -2,11 +2,19 @@ import {fireEvent, render, screen, waitFor} from '@testing-library/react'
 import {rest} from 'msw'
 import {setupServer} from 'msw/node'
 import React from 'react'
-import {CREATED_STATUS} from '../consts/httpStatus'
+import {CREATED_STATUS, ERROR_SERVER_STATUS} from '../consts/httpStatus'
 import {Form} from './form'
 
 const server = setupServer(
-  rest.post('/products', (req, res, ctx) => res(ctx.status(CREATED_STATUS))),
+  rest.post('/products', (req, res, ctx) => {
+    const {name, size, type} = req.body
+
+    if (name && size && type) {
+      return res(ctx.status(CREATED_STATUS))
+    }
+
+    return res(ctx.status(ERROR_SERVER_STATUS))
+  }),
 )
 
 beforeAll(() => {
@@ -103,6 +111,18 @@ describe('when the user submits the form', () => {
   })
 
   test('the form page must display the success message “Product stored” and clean the fields values', async () => {
+    fireEvent.change(screen.getByLabelText(/name/i), {
+      target: {name: 'name', value: 'my product'},
+    })
+
+    fireEvent.change(screen.getByLabelText(/size/i), {
+      target: {name: 'size', value: '10'},
+    })
+
+    fireEvent.change(screen.getByLabelText(/type/i), {
+      target: {name: 'type', value: 'electronic'},
+    })
+
     fireEvent.click(screen.getByRole('button', {name: /submit/i}))
 
     await waitFor(() =>

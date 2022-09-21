@@ -27,6 +27,12 @@ export const Form = () => {
     validateField({name: 'type', value: type})
   }
 
+  const getFormValues = ({name, size, type}) => ({
+    name: name.value,
+    size: size.value,
+    type: type.value,
+  })
+
   const handleSubmit = async e => {
     e.preventDefault()
 
@@ -34,9 +40,9 @@ export const Form = () => {
 
     const {name, size, type} = e.target.elements
 
-    validateForm({name: name.value, size: size.value, type: type.value})
+    validateForm(getFormValues({name, size, type}))
 
-    const response = await saveProduct()
+    const response = await saveProduct(getFormValues({name, size, type}))
 
     response.status === CREATED_STATUS && setIsSuccess(true)
 
@@ -76,7 +82,6 @@ export const Form = () => {
 
         <Select
           native
-          value=""
           inputProps={{
             name: 'type',
             id: 'type',
