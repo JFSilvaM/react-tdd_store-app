@@ -1,11 +1,12 @@
-import React from 'react'
-import {screen, render, fireEvent, waitFor} from '@testing-library/react'
-import {Form} from './form'
+import {fireEvent, render, screen, waitFor} from '@testing-library/react'
 import {rest} from 'msw'
 import {setupServer} from 'msw/node'
+import React from 'react'
+import {CREATED_STATUS} from '../consts/httpStatus'
+import {Form} from './form'
 
 const server = setupServer(
-  rest.post('/products', (req, res, ctx) => res(ctx.status(201))),
+  rest.post('/products', (req, res, ctx) => res(ctx.status(CREATED_STATUS))),
 )
 
 beforeAll(() => {
@@ -99,5 +100,13 @@ describe('when the user submits the form', () => {
     expect(submitBtn).toBeDisabled()
 
     await waitFor(() => expect(submitBtn).not.toBeDisabled())
+  })
+
+  test('the form page must display the success message “Product stored” and clean the fields values', async () => {
+    fireEvent.click(screen.getByRole('button', {name: /submit/i}))
+
+    await waitFor(() =>
+      expect(screen.getByText(/product stored/i)).toBeInTheDocument(),
+    )
   })
 })

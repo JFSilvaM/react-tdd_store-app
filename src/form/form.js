@@ -1,9 +1,12 @@
-import {InputLabel, Select, TextField, Button} from '@mui/material'
+import {Button, InputLabel, Select, TextField} from '@mui/material'
 import React, {useState} from 'react'
+import {CREATED_STATUS} from '../consts/httpStatus'
 import {saveProduct} from '../services/productServices'
 
 export const Form = () => {
   const [isSaving, setIsSaving] = useState(false)
+
+  const [isSuccess, setIsSuccess] = useState(false)
 
   const [formErrors, setFormErrors] = useState({
     name: '',
@@ -33,7 +36,9 @@ export const Form = () => {
 
     validateForm({name: name.value, size: size.value, type: type.value})
 
-    await saveProduct()
+    const response = await saveProduct()
+
+    response.status === CREATED_STATUS && setIsSuccess(true)
 
     setIsSaving(false)
   }
@@ -47,6 +52,8 @@ export const Form = () => {
   return (
     <>
       <h1>Create product</h1>
+
+      {isSuccess && <p>Product stored</p>}
 
       <form onSubmit={handleSubmit}>
         <TextField
