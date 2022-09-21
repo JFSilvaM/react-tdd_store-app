@@ -2,7 +2,11 @@ import {fireEvent, render, screen, waitFor} from '@testing-library/react'
 import {rest} from 'msw'
 import {setupServer} from 'msw/node'
 import React from 'react'
-import {CREATED_STATUS, ERROR_SERVER_STATUS} from '../consts/httpStatus'
+import {
+  CREATED_STATUS,
+  ERROR_SERVER_STATUS,
+  INVALID_REQUEST_STATUS,
+} from '../consts/httpStatus'
 import {Form} from './form'
 
 const server = setupServer(
@@ -26,6 +30,8 @@ afterAll(() => {
 })
 
 beforeEach(() => render(<Form />))
+
+afterEach(() => server.resetHandlers())
 
 describe('when the form is mounted', () => {
   test('there must be a create product from page', () => {
@@ -146,6 +152,32 @@ describe('when the user submits the form and the server returns an unexpected er
     await waitFor(() =>
       expect(
         screen.getByText(/unexpected error, please try again/i),
+      ).toBeInTheDocument(),
+    )
+  })
+})
+
+describe('when the user submits the form and the server returns an invalid request error', () => {
+  test('the form page must display the error message "The form is invalid, the fields [field1...fieldN] are required"', async () => {
+    server.use(
+      rest.post('/products', (req, res, ctx) => {
+        return res(
+          ctx.status(INVALID_REQUEST_STATUS),
+          ctx.json({
+            message:
+              'The form is invalid, the fields name, size, type are required',
+          }),
+        )
+      }),
+    )
+
+    fireEvent.click(screen.getByRole('button', {name: /submit/i}))
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          /the form is invalid, the fields name, size, type are required/i,
+        ),
       ).toBeInTheDocument(),
     )
   })
