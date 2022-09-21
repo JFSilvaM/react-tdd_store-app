@@ -44,7 +44,10 @@ export const Form = () => {
 
     const response = await saveProduct(getFormValues({name, size, type}))
 
-    response.status === CREATED_STATUS && setIsSuccess(true)
+    if (response.status === CREATED_STATUS) {
+      e.target.reset()
+      setIsSuccess(true)
+    }
 
     setIsSaving(false)
   }
