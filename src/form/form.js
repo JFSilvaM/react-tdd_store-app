@@ -2,34 +2,48 @@ import {InputLabel, Select, TextField, Button} from '@mui/material'
 import React, {useState} from 'react'
 
 export const Form = () => {
+  const [isSaving, setIsSaving] = useState(false)
+
   const [formErrors, setFormErrors] = useState({
     name: '',
     size: '',
     type: '',
   })
 
-  const handleSubmit = e => {
+  const validateField = ({name, value}) => {
+    setFormErrors(prevState => ({
+      ...prevState,
+      [name]: value.length ? '' : `The ${name} is required`,
+    }))
+  }
+
+  const validateForm = ({name, size, type}) => {
+    validateField({name: 'name', value: name})
+    validateField({name: 'size', value: size})
+    validateField({name: 'type', value: type})
+  }
+
+  const handleSubmit = async e => {
     e.preventDefault()
+
+    setIsSaving(true)
 
     const {name, size, type} = e.target.elements
 
-    !name.value &&
-      setFormErrors(prevState => ({...prevState, name: 'The name is required'}))
+    validateForm({name: name.value, size: size.value, type: type.value})
 
-    !size.value &&
-      setFormErrors(prevState => ({...prevState, size: 'The size is required'}))
+    await fetch('/products', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    })
 
-    !type.value &&
-      setFormErrors(prevState => ({...prevState, type: 'The type is required'}))
+    setIsSaving(false)
   }
 
   const handleBlur = e => {
     const {name, value} = e.target
 
-    setFormErrors({
-      ...formErrors,
-      [name]: value.length ? '' : `The ${name} is required`,
-    })
+    validateField({name, value})
   }
 
   return (
@@ -71,7 +85,9 @@ export const Form = () => {
 
         {formErrors.type.length && <p>{formErrors.type}</p>}
 
-        <Button type="submit">Submit</Button>
+        <Button disabled={isSaving} type="submit">
+          Submit
+        </Button>
       </form>
     </>
   )
