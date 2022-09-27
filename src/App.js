@@ -1,5 +1,7 @@
+import Form from './form/form'
+
 function App() {
-  return <h1>Create product</h1>
+  return <Form />
 }
 
 export default App
